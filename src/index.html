@@ -2,59 +2,67 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>FileReader</title>
+		<title>文件上传监控</title>
+		<style type="text/css">
+			#box{background: cadetblue;height: 20px;}
+			#box1{background: chocolate;height: 20px;width: 0px;}
+		</style>
 	</head>
 	<body>
 		<input type="file" id="fileInput" multiple />
 		<p id="text"></p>
-		<div id="box"></div>
+		<div id="box">
+			<div id="box1"></div>
+		</div>
+		<button id="btn">中断</button>
 		<script type="text/javascript">
 			fileInput.onchange = function(){
 				var file = this.files[0];
-				var url =  window.URL.createObjectURL(file);
+				
 				var reader = new FileReader();
-
-				reader.onload = function(e){
-					//console.log(e);
-					//获取文件的内容
-					//text.innerHTML = e.target.result;
-
-					// 利用DataURL预览
-					// console.log(e.target.result);
-					// var img = document.createElement("img");
-					// img.style.width=200+"px";
-					// img.src = e.target.result;
-					// box.appendChild(img);
-
-
-
-					// console.log(e.target.result);
-					// var x1 = new Uint8Array(e.target.result);
-					// console.log(x1);
-
-
-					console.log(e.target.result);
-					// 这里的result为arraybuffer对象
-					var result = e.target.result; 
-					var reader2 = new FileReader();
-					reader2.onload = function(e){
-						console.log(e.target.result);
+				
+				
+				//开始读取的时候触发
+				reader.onloadstart = function(e){
+					if(confirm('确定上传？')){
+						//操作过程中触发
+						reader.onprogress = function (e){
+							console.log(e);
+							//上传的大小和  总大小  
+							if(e.loaded<e.total){
+								var num = (e.loaded/e.total)*100;
+								box1.style.width = num+"%";
+								box1.innerHTML = "<span style='color:chartreuse'>正在上传！</span>";
+							}else{
+								//文件上传成功时触发
+								reader.onload = function(e){
+									if(e.loaded%e.total == 0){
+										box1.style.width = 100+"%";
+										box1.innerHTML = "<span style='color:green'>上传成功！</span>"
+									}
+								}
+							}
+							
+						}
+					}else{
+						text.innerHTML = "<span style='color:blue'>放弃上传</span>"
 					}
-					// 将arraybuffer对象创建一个blob
-					reader2.readAsText(new Blob([result],{type:"text/html"}));
-					
 				}
 				
-				//获取文本内容
-				//reader.readAsText(file,'utf-8')
+				//中断操作
+				function stopReader(e){
+					reader.abort();
+					box1.innerHTML = "<span style='color:crimson'>未知原因中断！</span>"
+					
+				}
+				reader.onabort =stopReader;
+				btn.onclick = stopReader;
 				
-				//获取内容地址 data:URL格式
-				//reader.readAsDataURL(file)
+				//获取二进制文的内容
+				reader.readAsText(file,'utf-8')
+			
 				
-				//获取原始二进制数据
-				//reader.readAsBinaryString(file);
 				
-				reader.readAsArrayBuffer(file);
 			
 				
 			}
