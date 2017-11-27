@@ -20,18 +20,28 @@
 					//text.innerHTML = e.target.result;
 
 					// 利用DataURL预览
-					console.log(e.target.result);
-					var img = document.createElement("img");
-					img.style.width=200+"px";
-					img.src = e.target.result;
-					box.appendChild(img);
+					// console.log(e.target.result);
+					// var img = document.createElement("img");
+					// img.style.width=200+"px";
+					// img.src = e.target.result;
+					// box.appendChild(img);
 
 
 
 					// console.log(e.target.result);
 					// var x1 = new Uint8Array(e.target.result);
 					// console.log(x1);
-					
+
+
+					console.log(e.target.result);
+					// 这里的result为arraybuffer对象
+					var result = e.target.result; 
+					var reader2 = new FileReader();
+					reader2.onload = function(e){
+						console.log(e.target.result);
+					}
+					// 将arraybuffer对象创建一个blob
+					reader2.readAsText(new Blob([result],{type:"text/html"}));
 					
 				}
 				
@@ -39,12 +49,12 @@
 				//reader.readAsText(file,'utf-8')
 				
 				//获取内容地址 data:URL格式
-				reader.readAsDataURL(file)
+				//reader.readAsDataURL(file)
 				
 				//获取原始二进制数据
 				//reader.readAsBinaryString(file);
 				
-				//reader.readAsArrayBuffer(file);
+				reader.readAsArrayBuffer(file);
 			
 				
 			}
