@@ -1,72 +1,97 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<meta charset="utf-8">
-		<title>文件上传监控</title>
+		<meta charset="UTF-8">
+		<title>大文件分段上传</title>
 		<style type="text/css">
-			#box{background: cadetblue;height: 20px;}
-			#box1{background: chocolate;height: 20px;width: 0px;}
+			#box{
+				height: 200px;
+				width: 200px;
+				font-size: 20px;
+				text-align: center;
+				line-height: 200px;
+				border: 1px solid chocolate;
+			}
+			#text{
+				height: 20px;
+				background-color: cadetblue;
+			}
+			
+			#progress {
+				height: 20px;
+				background-color: coral;
+				width: 0px;
+			}
 		</style>
 	</head>
 	<body>
-		<input type="file" id="fileInput" multiple />
-		<p id="text"></p>
-		<div id="box">
-			<div id="box1"></div>
+		<input type="file" id="fileInput" /><br /><br />
+		<!--<progress id="progress" min=0 value="0" max="100"></progress>-->
+		<input type="button" onclick="stop()"  value="终止上传" />
+		<div id="text">
+			<div id="progress"></div>
 		</div>
-		<button id="btn">中断</button>
 		<script type="text/javascript">
+			var fileInput = document.getElementById("fileInput");
+			
+			//已经读取的大小
+			var spliceSize = 0;
+			//每次上传的大小   50M
+			var addSize = 50*1025*1024;  
+			//总大小
+			var fileSize;
+			//文件的信息
+			var  file;	
+			
+			var reader = new FileReader();
+			//获取文件信息及总大小
 			fileInput.onchange = function(){
-				var file = this.files[0];
+				file  = this.files[0];
+				console.log(file);
+				fileSize = file.size;
 				
-				var reader = new FileReader();
-				
-				
-				//开始读取的时候触发
-				reader.onloadstart = function(e){
-					if(confirm('确定上传？')){
-						//操作过程中触发
-						reader.onprogress = function (e){
-							console.log(e);
-							//上传的大小和  总大小  
-							if(e.loaded<e.total){
-								var num = (e.loaded/e.total)*100;
-								box1.style.width = num+"%";
-								box1.innerHTML = "<span style='color:chartreuse'>正在上传！</span>";
-							}else{
-								//文件上传成功时触发
-								reader.onload = function(e){
-									if(e.loaded%e.total == 0){
-										box1.style.width = 100+"%";
-										box1.innerHTML = "<span style='color:green'>上传成功！</span>"
-									}
-								}
-							}
-							
-						}
-					}else{
-						text.innerHTML = "<span style='color:blue'>放弃上传</span>"
-					}
-				}
-				
-				//中断操作
-				function stopReader(e){
-					reader.abort();
-					box1.innerHTML = "<span style='color:crimson'>未知原因中断！</span>"
-					
-				}
-				reader.onabort =stopReader;
-				btn.onclick = stopReader;
-				
-				//获取二进制文的内容
-				reader.readAsText(file,'utf-8')
-			
-				
-				
-			
-				
+				loadBolb();
 			}
+			
+			function loadBolb(){
+				var blob = file.slice(spliceSize,addSize+spliceSize);
+				// reader.readAsDataURL(blob);
+				reader.readAsArrayBuffer(blob);
+				//reader.readAsBinaryString(blob);
+				//reader.readAsText(blob);
+			}
+			
+			reader.onload = function(e){
+				spliceSize += e.total;
+				
+				console.log(spliceSize,addSize+spliceSize)
+				//每次加的大小 除以总大小
+				var num = spliceSize / fileSize;
+				if(num<1){
+					loadBolb();
+				}else{
+					console.log("上传完成！");
+					num = 1;
+				}
+				console.log(num);
+				//当前上传的进度
+				num = Math.ceil(num*100)+"%";
+				progress.innerHTML = num;
+				progress.style.width = num;
+			}
+			
+			function stop(){
+					
+					reader.abort();
+//				alert(123);
+//				reader.onabort = function(){
+//
+					progress.innerHTML = "终止上传！";
+//				}
+			}
+			
+			
+			
 		</script>
-		
 	</body>
 </html>
